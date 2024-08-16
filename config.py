@@ -1,0 +1,8 @@
+wifi_config = {
+    'ssid':'',
+    'password':''
+}
+
+utelegram_config = {
+    'token': ''
+}
