@@ -1,8 +1,9 @@
 import time
 import gc
 import ujson
-import requests
-
+import urequests
+import machine
+from machine import Timer
 
 class ubot:
     def __init__(self, token, offset=0):
@@ -10,31 +11,17 @@ class ubot:
         self.commands = {}
         self.default_handler = None
         self.message_offset = offset
-        self.sleep_btw_updates = 3
+        self.sleep_btw_updates = 0.1
 
-        messages = self.read_messages()
+        messages = self.read_first()
         if messages:
-            if self.message_offset==0:
-                self.message_offset = messages[-1]['update_id']
-            else:
-                for message in messages:
-                    if message['update_id'] >= self.message_offset:
-                        self.message_offset = message['update_id']
-                        break
-
-   # def replace_utf_unicode(self, text):
-    #    print(text)
-     #   text_str=text.replace("ä","/u00e4")
-      #  text_str=text_str.replace("ö","/u00f6")
-       # text_str=text_str.replace("ü","/u00fc")
-        #text_b = bytearray(text_str,'utf')
-   #     for x in range(len(text_b)):
-    #        if text_b[x]==47:
-     #           #text_b[x]=195
-      #          text_b[x]=92
-       # text_str2=text_b.decode()
-        #print(text_str2)
-        #return text_str2
+             if self.message_offset==0:
+                 self.message_offset = messages[-1]['update_id']
+             else:
+                 for message in messages:
+                     if message['update_id'] >= self.message_offset:
+                         self.message_offset = message['update_id']
+                         break
     
     def send(self, chat_id, text):
        
@@ -44,7 +31,7 @@ class ubot:
         data = {'chat_id': chat_id, 'text': text}
         try:
             headers = {'Content-Type': 'application/json', 'Accept': 'text/plain'}
-            response = requests.post(self.url + '/sendMessage', json=data, headers=headers, timeout=10)
+            response = urequests.post(self.url + '/sendMessage', json=data, headers=headers, timeout=10)
             response.close()
             return True
         except:
@@ -59,7 +46,7 @@ class ubot:
         print(data)
         try:
             headers = {'Content-Type': 'application/json', 'Accept': 'text/plain'}
-            response = requests.post(self.url + '/sendMessage', json=data, headers=headers, timeout=10)
+            response = urequests.post(self.url + '/sendMessage', json=data, headers=headers, timeout=10)
             print(response.text)
             response.close()
             return True
@@ -75,24 +62,59 @@ class ubot:
             'allowed_updates': ['message']}
 
         try:
-            update_messages = requests.post(self.url + '/getUpdates', json=self.query_updates, timeout=31).json() 
+            print("post")
+            update_messages = urequests.post(self.url + '/getUpdates', json=self.query_updates, timeout=31).json()
+            print("posted")
             if 'result' in update_messages:
                 for item in update_messages['result']:
                     result.append(item)
             return result
         except (ValueError):
+            print("error")
             return None
-        except (OSError):
-            print("OSError: request timed out")
+        except:
+            print("Error")
             return None
+        
+        
+    def read_first(self):
+        result = []
+        self.query_updates = {
+            'offset': self.message_offset + 1,
+            'limit': 1,
+            'timeout': 1,
+            'allowed_updates': ['message']}
+
+        try:
+            print("post")
+            update_messages = urequests.post(self.url + '/getUpdates', json=self.query_updates, timeout=10).json()
+            print("posted")
+            if 'result' in update_messages:
+                for item in update_messages['result']:
+                    result.append(item)
+            return result
+        except (ValueError):
+            print("error")
+            return None
+        except:
+            print("Error")
+            return None
+        
+    def timeout(self,t):
+        print("timeout")
+        time.sleep(1)
+        machine.reset()
+        
 
     def listen(self):
         while True:
+            print("read once")
             self.read_once()
             time.sleep(self.sleep_btw_updates)
             gc.collect()
 
     def read_once(self):
+        
         messages = self.read_messages()
         if messages:
             if self.message_offset==0:
