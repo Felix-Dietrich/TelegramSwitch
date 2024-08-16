@@ -1,0 +1,5 @@
+texts = {
+    'reply_start1':'Hallo',
+    'reply_start2':'hallo',
+    'reply_ping':'pong'
+}

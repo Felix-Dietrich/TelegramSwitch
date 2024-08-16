@@ -1,5 +1,6 @@
 from config import utelegram_config
 from config import wifi_config
+from messages import texts
 
 import utelegram
 import network
@@ -58,12 +59,12 @@ def get_message(message):
     
 def reply_start(message):
     l_message = message
-    bot.send_keyboard(message['message']['chat']['id'], custom_keyboard,'Hallo Julia\nIn diesem Chat kannst du deine Wärmematte\n/Einschalten\nund\n/Ausschalten\nIch liebe dich\nLiebe Grüsse\nFelix')
-    bot.send(l_message['message']['chat']['id'], 'Damit du die Wärmematte fernsteuern kannst, musst du sie am Schalter eingeschaltet lassen und dann über diesen Chat bedienen.')
+    bot.send_keyboard(message['message']['chat']['id'], custom_keyboard, texts['reply_start1'])
+    bot.send(l_message['message']['chat']['id'], texts['reply_start2'])
     
 def reply_ping(message):
     #print(message)
-    bot.send_keyboard(message['message']['chat']['id'], custom_keyboard,'äöü')
+    bot.send_keyboard(message['message']['chat']['id'], custom_keyboard, texts['reply_ping'])
     
 def reply_on(message):
     #print(message)
