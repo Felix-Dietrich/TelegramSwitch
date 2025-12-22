@@ -43,15 +43,22 @@ blinktimer = Timer(mode = Timer.PERIODIC, freq=4, callback=blink)
 
 
 sta_if = network.WLAN(network.STA_IF)
+sta_if.disconnect()
+sta_if.active(False)
+time.sleep(5)
+
 sta_if.active(True)
 sta_if.connect(wifi_config['ssid'], wifi_config['password'])
-
-while not sta_if.isconnected() and sta_if.status() >= 0:
+counter = 0
+while (not sta_if.isconnected()) or (sta_if.status() != network.STAT_GOT_IP):
     print("Waiting to connect:")
+    counter = counter+1
+    if(counter > 60):
+        machine.reset()
     time.sleep(1)
     
 print(sta_if.ifconfig())
-blinktimer.init(freq=2, callback=blink)
+blinktimer.init(freq=1, callback=blink)
 
 def get_message(message):
     #print(message)
@@ -80,6 +87,7 @@ def reply_off(message):
 
 if sta_if.isconnected():
     bot = utelegram.ubot(utelegram_config['token'])
+    print('BOT configured')
     bot.register('/ping', reply_ping)
     
     bot.register('Einschalten', reply_on)
@@ -89,7 +97,7 @@ if sta_if.isconnected():
     bot.register('/Ausschalten', reply_off)
     
     bot.register('/start', reply_start)
-    
+    print('BOT registered')
     bot.set_default_handler(get_message)
 
     print('BOT LISTENING')
